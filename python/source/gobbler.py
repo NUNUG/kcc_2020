@@ -150,7 +150,7 @@ while True:
 				if (gid != 0):
 					is_power_pellet = (tiled_gid == 196)
 					if (is_power_pellet):
-						f.power_up(game_time, gobbler, ghost_yellow, ghost_pink, ghost_cyan, ghost_red)
+						f.power_up(game_time, gobbler, all_ghosts)
 						s.sound_crunch.play()
 					else:
 						s.sound_gobble.play()
@@ -158,7 +158,7 @@ while True:
 					if pellets.all_gone():
 						f.victory()
 		if f.power_up_expired(game_time):
-			f.power_down(gobbler, ghost_yellow, ghost_pink, ghost_cyan, ghost_red)
+			f.power_down(gobbler, all_ghosts)
 
 		for sprite in all_sprites:
 			sprite.navigator.navigate()
