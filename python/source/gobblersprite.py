@@ -4,13 +4,13 @@ import graphics
 import gamedata
 
 class GobblerSprite(mazesprite.MazeSprite):
-	def __init__(self, graphics):
-		mazesprite.MazeSprite.__init__(self, graphics)
-		self.direction = (1, 1)
+	"""Represent's the gobbler's graphics, animation and behaviors."""
+	def __init__(self, graphics, navigator):
+		mazesprite.MazeSprite.__init__(self, graphics, navigator)
+		#self.direction = (1, 1)
 
 	def animation_delay_ms(self):
 		return gamedata.GameData.GOBBLER_ANIMATION_DELAY
-		#return 0
 
 	# This overrides the load_frames() method in the mazesprite class, which GobblerSprite inherits.
 	def load_frames(self, graphics):
@@ -23,4 +23,10 @@ class GobblerSprite(mazesprite.MazeSprite):
 	# This overrides the get_speed() method in the mazesprite class, which GobblerSprite inherits.
 	def get_speed(self):
 		return gamedata.GameData.GOBBLER_SPEED
+
+	def get_startup_position(self):
+		return gamedata.GameData.GOBBLER_STARTUP_POSITION
+
+	def get_startup_direction(self):
+		return gamedata.GameData.GOBBLER_STARTUP_DIRECTION
 

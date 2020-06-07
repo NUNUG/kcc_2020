@@ -1,53 +1,99 @@
 ###############################################################################
-# Gobbler Development
+# Gobbler
 ###############################################################################
-# This is the game under development.
+#
 # Instructions:
-# 	Left, right, up or down to move the Gobbler.
-#	Space-bar to rotate
-#	Down to drop the piece
-#	Fill all the blocks in a line to clear the line.
-#	Clear multiple lines at once for more points!
+# 	- Left, right, up or down arrow keys to move the Gobbler.
+#	- Gobble all the pellets to complete the game.
+#	- on't let the ghosts touch you!  If they catch you, it's game over.
+#	- The big green pellets in the corners of the maze are power pellets.
+#	- Eat a power pellet to power up.  When powered up, it frightens the ghosts.
+#	- You can chomp frightened ghosts!  Once chomped, the ghost returns to his
+#	or her normal form and enters the maze again from their place in the cage.
+#
+# There is room for improvement!  Try adding these enhancements :
+#	- Ghosts should run in chomped form back to the cage instead of appearing
+#	there instantly.  Can you fix it?
+#	- After clearing the maze of all pellets, you could reset the pellets
+#	and start a new round.
+#	- Add a score.  Gobbling a pellet is 10 pts, gobbling a power pellet is 50 pts,
+#	chomping a ghost is 500 pts, clearing a maze is 1000 pts.
+#	- Add more animation frames to the ghosts so their frayed ends dangle as
+#	they move.  Make their eyes will look in the direction they're moving.
+#	Add a title screen.
 ###############################################################################
 
+# PyGame stuff
 import pygame
 from pygame.locals import *
 import sys
-import functions
-import gobblersprite
+# Tile data
+import tmxdata
 import maze
-#import ghostsprites
-#from gamedata import GameData
+import pellets
+import gobblerpaths
+import ghostpaths
+# Game files
+import functions
+from directions import *
+from navigators import *
+# Graphics files
+import gobblersprite
+import ghostsprite
 import graphics
-from sounds import *
+#from sounds import *
+import sounds
+import random
 
+# Sound and graphics init for PyGame
 pygame.mixer.pre_init(22050, -16, 2, 256)
 pygame.init()
 pygame.mixer.init()
 
-# Setup for the screen.
-screen_size = (640, 480)
+# Set up the screen.
+screen_size = (55*8, 61*8)
+
 screen = pygame.display.set_mode([screen_size[0], screen_size[1]])
 pygame.display.set_caption("Gobbler")
 
-# Game Setup
-f = functions.GameFunctions()
+# System setup
+s = sounds.GameSounds()
 g = graphics.Graphics()
-gobbler = gobblersprite.GobblerSprite(g)
-maze = maze.Maze(g)
+f = functions.GameFunctions(g, s)
+random.seed(pygame.time.get_ticks())
 
-#img_background = pygame.image.
-#img_background_scaled = pygame.transform.scale(img_background, screen_size)
+# Tilesets Setup
+tmxdata = tmxdata.TmxData()
+maze = maze.Maze(tmxdata)
+pellets_template = pellets.Pellets(tmxdata)
+pellets = pellets.Pellets(tmxdata)
+pellets.reset(pellets_template)
+ghost_paths = ghostpaths.GhostPaths(tmxdata)
+gobbler_paths = gobblerpaths.GobblerPaths(tmxdata)
+left_portal = (1, 28)
+right_portal = (53, 28)
 
-# Load sounds
-#game_sounds = GameSounds()
 
-# Load and play background music.
-#pygame.mixer.music.load(GameData.MUSIC_BACKGROUND_FILENAME)
-#pygame.mixer.music.play(-1)
+# Sprites Setup
+gobbler = gobblersprite.GobblerSprite(g, GobblerNavigator(f, gobbler_paths))
+ghost_yellow = ghostsprite.YellowGhostSprite(g, RandomNavigator(f, ghost_paths))
+ghost_pink = ghostsprite.PinkGhostSprite(g, RandomNavigator(f, ghost_paths))
+ghost_cyan = ghostsprite.CyanGhostSprite(g, RandomNavigator(f, ghost_paths))
+ghost_red = ghostsprite.RedGhostSprite(g, RandomNavigator(f, ghost_paths))
+
+all_ghosts = [ghost_yellow, ghost_pink, ghost_cyan, ghost_red]
+all_sprites = [gobbler, ghost_yellow, ghost_pink, ghost_cyan, ghost_red]
+
+# Start background music.
+s.play_music_casual()
+
+# Game Loop setup
+fps = 60
+
+for sprite in all_sprites:
+	sprite.reset()
 
 # This is the main game loop.  Everything below here repeats forever.
-fps = 60
 while True:
 	pygame.time.Clock().tick(fps)
 	game_time = pygame.time.get_ticks()
@@ -57,55 +103,94 @@ while True:
 		if event.type == pygame.QUIT:
 			sys.exit()
 
+
 		# Check the keyboard for keypresses. (These buttons must be pressed repeatedly.)
 		if event.type == pygame.KEYDOWN:
 			if (event.key == K_ESCAPE):
 				sys.exit()
-			# if (event.key == K_LEFT):
-			# 	this_piece.move_left(well_matrix)
-			# if (event.key == K_RIGHT):
-			# 	this_piece.move_right(well_matrix)
-			# if (event.key == K_UP):
-			# 	this_piece.move_left(well_matrix)
-			# if (event.key == K_DOWN):
-			# 	this_piece.move_right(well_matrix)
 
-	# If DOWN is held, drop it faster
-	keys = pygame.key.get_pressed()
-	if (keys[K_UP]):
-		gobbler.attempt_up(maze)
-	if (keys[K_DOWN]):
-		gobbler.attempt_down(maze)
-	if (keys[K_LEFT]):
-		gobbler.attempt_left(maze)
-	if (keys[K_RIGHT]):
-		gobbler.attempt_right(maze)
-	# if (keys[K_DOWN]):
-	# 	dropping_speed = int(hover_duration / 10 * 95)
-	# else:
-	# 	dropping_speed = 0
+	# Game over screen
+	if (f.game_over):
+		g.draw_maze(maze, screen)
+		g.draw_pellets(pellets, screen)
+		g.draw_gobbler(screen)
+		if (f.you_win):
+			# Start a new round here if you want!
+			g.draw_you_win(screen)
+		else:
+			g.draw_you_died(screen)
+	else:
+		keys = pygame.key.get_pressed()
+		if keys[K_UP]:
+			gobbler.attempt_direction(maze, gobbler_paths, f, direction_up)
+		if keys[K_DOWN]:
+			gobbler.attempt_direction(maze, gobbler_paths, f, direction_down)
+		if keys[K_LEFT]:
+			gobbler.attempt_direction(maze, gobbler_paths, f, direction_left)
+		if keys[K_RIGHT]:
+			gobbler.attempt_direction(maze, gobbler_paths, f, direction_right)
 
-	# Draw the maze
-	f.draw_maze(screen, screen_size)
+		gobbler_rect = gobbler.get_center_rect()
+		(p_x, p_y, _, _) = gobbler_rect
+		if (f.pixel_is_tile_aligned(p_x, p_y)):
+			tile_loc = f.tile_location_of_pixel(p_x, p_y)
+			(t_x, t_y) = tile_loc
 
-	# Draw the pellets
-	f.draw_pellets(screen, screen_size)
+			# Look for a portal here
+			if (tile_loc == left_portal) and (gobbler.direction == direction_left):
+				gobbler.set_center_tile_position((right_portal[0], right_portal[1]))
+			elif (tile_loc == right_portal) and (gobbler.direction == direction_right):
+				gobbler.set_center_tile_position((left_portal[0], left_portal[1]))
 
-	# Move the Gobbler
-	gobbler.move()
-	gobbler.animate(game_time)
+			# Look for a pellet here
+			pellet = pellets.pellet_at(t_x, t_y)
+			if (pellet != None):
+				(x, y, gid, tiled_gid, _) = pellet
+				# Is it a power pellet?
+				if (gid != 0):
+					is_power_pellet = (tiled_gid == 196)
+					if (is_power_pellet):
+						f.power_up(game_time, gobbler, ghost_yellow, ghost_pink, ghost_cyan, ghost_red)
+						s.sound_crunch.play()
+					else:
+						s.sound_gobble.play()
+					pellets.gobble(t_x, t_y)
+					if pellets.all_gone():
+						f.victory()
+		if f.power_up_expired(game_time):
+			f.power_down(gobbler, ghost_yellow, ghost_pink, ghost_cyan, ghost_red)
 
-	# Draw the Gobbler
-	gobbler.render(screen)
-	#screen.blit(g.images[5], (0, 0))
+		for sprite in all_sprites:
+			sprite.navigator.navigate()
 
+		# Look for collisisons with ghosts
+		for ghost in all_ghosts:
+			f.check_ghost_collision(gobbler, ghost)
 
-	# Draw the ghosts
+		# Draw the maze
+		screen.fill(Color("White"))
+		g.draw_maze(maze, screen)
 
-	# # Draw the score box
-	# g.draw_scoreboard(screen, screen_size, score)
+		# Draw the pellets
+		g.draw_pellets(pellets, screen)
 
-	# Put the scene on the monitor.
-	pygame.display.update()
+		# Animate each sprite
+		for sprite in all_sprites:
+			sprite.animate(game_time)
+
+		# Adjust the location of the sprite in the maze.
+		for sprite in all_sprites:
+			sprite.move(game_time)
+
+		# Draw the Gobbler
+		gobbler.render(screen)
+		g.draw_rect(gobbler.get_center_rect(), screen)
+
+		# Draw the ghosts
+		for ghost in all_ghosts:
+			ghost.render(screen)
+
+		# Put the scene on the monitor.
+		pygame.display.update()
 
 # End of game loop.

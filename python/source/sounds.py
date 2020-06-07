@@ -3,25 +3,24 @@ import os.path
 import pygame
 from gamedata import *
 
-#filename = "../assets/sounds/thud.wav"
-#filename = GameData.SOUND_THUD_FILENAME
-#exists = os.path.isfile(filename)
-#print (exists)
-#print (os.getcwd())
-# cpath = os.path.join(os.getcwd(), GameData.SOUND_THUD_FILENAME)
-# print ("CPath: ")
-# print (cpath)
-# cpathexists = os.path.isfile(cpath)
-# print (cpathexists)
-# abspath = os.path.abspath(cpath)
-# print("AbsPath: ")
-# print(abspath)
-# abspathexists = os.path.isfile(abspath)
-# print(abspathexists)
-
 class GameSounds:
+	"""This class is the sole access point for sound effects and music.
+	Each music resource is played or stopped by one of the methods of this
+	object.  Each sound effect is a simple member with its own play and stop
+	members."""
 	def __init__(self):
-		self.thud = pygame.mixer.Sound(GameData.SOUND_THUD_FILENAME)
-		self.line_clear = pygame.mixer.Sound(GameData.SOUND_LINE_CLEAR_FILENAME)
-		self.crunch = pygame.mixer.Sound(GameData.SOUND_CRUNCH_FILENAME)
-		self.game_over = pygame.mixer.Sound(GameData.SOUND_GAMEOVER_FILENAME)
+		self.sound_death = pygame.mixer.Sound(GameData.SOUND_DEATH_FILENAME)
+		self.sound_gobble = pygame.mixer.Sound(GameData.SOUND_GOBBLE_FILENAME)
+		self.sound_crunch = pygame.mixer.Sound(GameData.SOUND_CRUNCH_FILENAME)
+		self.sound_chomp = pygame.mixer.Sound(GameData.SOUND_CHOMP_FILENAME)
+
+	def play_music_casual(self):
+		pygame.mixer.music.load(GameData.MUSIC_CASUAL_FILENAME)
+		pygame.mixer.music.play(-1)
+
+	def play_music_urgent(self):
+		pygame.mixer.music.load(GameData.MUSIC_URGENT_FILENAME)
+		pygame.mixer.music.play(-1)
+
+	def stop_music(self):
+		pygame.mixer.music.stop()
