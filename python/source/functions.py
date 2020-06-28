@@ -79,8 +79,8 @@ class GameFunctions:
 		# red.run_away()
 
 		# Background music changes casual to urgent
-		self.sounds.play_music_urgent()
-		self.sounds.sound_crunch.play()
+		# self.sounds.play_music_urgent()
+		# self.sounds.sound_crunch.play()
 		self.powered_up = True
 
 		# Start a countdown timer
@@ -95,13 +95,9 @@ class GameFunctions:
 		"""Expires the powerup status and returns Gobbler to normal.
 		Sets the ghosts as hunters and returns the music to normal."""
 		if (self.powered_up):
-			self.sounds.play_music_casual()
+			# self.sounds.play_music_casual()
 			for ghost in ghosts:
 				ghost.hunt()
-			# yellow.hunt()
-			# pink.hunt()
-			# cyan.hunt()
-			# red.hunt()
 			self.powered_up = False
 
 	def check_ghost_collision(self, gobbler, ghost):
@@ -111,13 +107,7 @@ class GameFunctions:
 		ghost_rect = ghost.get_center_rect()
 		gobbler_rect = gobbler.get_center_rect()
 		has_collision = ghost_rect.colliderect(gobbler_rect)
-		if has_collision:
-			if ghost.is_scared:
-				self.chomp(ghost)
-			else:
-				self.haunt(ghost, gobbler)
-			return True
-		return False
+		return has_collision
 
 	def chomp(self, ghost):
 		"""Terminates the ghost and sets it to respawn in normal

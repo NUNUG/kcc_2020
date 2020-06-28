@@ -38,6 +38,18 @@ class Navigator:
 		pass
 
 
+class VoidNavigator(Navigator):
+	"""This is a navigator tht does nothing.  We only use it as a placeholder when
+	building the game, allowing us to take baby steps and add a proper navigator later.
+	This is not a real navigator to be used in the game."""
+	#def __init__(self, game_functions, paths):
+	def __init__(self):
+		#Navigator.__init__(self, game_functions, paths)
+		pass
+	def navigate(self):
+		pass
+
+
 class GobblerNavigator(Navigator):
 	""""A simple navigator for Gobbler.  Gobbler is controlled by the keyboard
 	and so he doesn't have much need for a navigator to decide where to go.
